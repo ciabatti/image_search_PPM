@@ -47,7 +47,7 @@ def result(request):
         'description': md.get('description', 'Nessuna descrizione disponibile')  
     }
     for image_id, distance, md in zip(results['ids'][0], results['distances'][0], results['metadatas'][0])
-    if 'image_path' in md  # check image_path exists
+    if 'image_path' in md  
 ]
 
        
