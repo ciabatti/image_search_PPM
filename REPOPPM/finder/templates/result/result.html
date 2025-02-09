@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Search Results</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
+            color: #333;
+        }
+        .container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .image-box {
+            height: 200px;  
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px;
+            border: 1px solid #ddd;  
+            border-radius: 5px;
+            position: relative;  
+            overflow: hidden;  
+            transition: transform 0.3s;  
+        }
+        .image-box:hover {
+            transform: scale(1.05);  
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .distance {
+            position: absolute;  
+            bottom: 5px;
+            right: 5px;
+            color: white;  
+            background-color: rgba(0, 0, 0, 0.7);  
+            padding: 5px;
+            border-radius: 3px;  
+        }
+        .description {
+            position: absolute;
+            bottom: 30px;  
+            left: 10px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            border-radius: 3px;
+            display: none;  
+        }
+        .image-box:hover .description {
+            display: block;  
+        }
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;  
+        }
+        .btn {
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #5a6268;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Search Results for "{{ query }}"</h1>
+        <div class="row">
+            {% for image in images %}
+            <div class="col-md-4">
+                <div class="image-box">
+                    <img src="{{ image.path }}" alt="Image" />
+                    <div class="description">{{ image.description }}</div>  
+                    <div class="distance">Distance: {{ image.distance|floatformat:4 }}</div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-center">No images found.</p>
+            {% endfor %}
+        </div>
+        <div class="text-center">
+            <a href="{% url 'search' %}" class="btn btn-secondary">Return to search page</a>
+        </div>
+    </div>
+</body>
+</html>

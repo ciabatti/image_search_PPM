@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Search Images</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
+            color: #333;
+            height: 100vh;  
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 300px;  
+        }
+        .btn {
+            margin-left: 10px;  
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Search Images</h1>
+        <form method="POST" action="{% url 'result' %}" class="text-center mb-4">
+            {% csrf_token %}
+            <input type="text" name="query" placeholder="Enter your search text" required class="form-control d-inline-block">
+            <button type="submit" class="btn btn-primary">Go</button>
+        </form>
+    </div>
+</body>
+</html>
