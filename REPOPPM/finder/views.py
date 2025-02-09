@@ -44,10 +44,10 @@ def result(request):
     {
         'path': os.path.join(settings.MEDIA_URL, os.path.basename(md['image_path'])),
         'distance': distance,
-        'description': md.get('description', 'Nessuna descrizione disponibile')  # Aggiungi la descrizione
+        'description': md.get('description', 'Nessuna descrizione disponibile')  
     }
     for image_id, distance, md in zip(results['ids'][0], results['distances'][0], results['metadatas'][0])
-    if 'image_path' in md  # Assicurati che 'image_path' sia presente
+    if 'image_path' in md  # check image_path exists
 ]
 
        
