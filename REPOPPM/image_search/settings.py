@@ -19,9 +19,6 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-CSRF_TRUSTED_ORIGINS= ["https://imagesearchppm-production.up.railway.app"]
-
-# Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -30,7 +27,10 @@ SECRET_KEY = "django-insecure-_!^vl^%wh_f!@ndj3ndyl$4+_^wwn2xz2d*htpfemb2t33zmtj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1',  
+]
 
 
 

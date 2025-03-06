@@ -1,23 +1,23 @@
-# Usa un'immagine di base Python
+# Use a base Python image
 FROM python:3.10-slim
 
-# Imposta la directory di lavoro nel contenitore
+# Set the working directory in the container
 WORKDIR /app
 
-# Copia il file di requisiti nella directory di lavoro
+# Copy the requirements file to the working directory
 COPY requirements.txt /app/
 
-# Installa le dipendenze
+# Install dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copia il codice dell'applicazione nella directory di lavoro
+# Copy the application code to the working directory
 COPY . /app/
 
-# Imposta le variabili di ambiente per Django
+# Set environment variables for Django
 ENV PYTHONUNBUFFERED=1
 
-# Espone la porta che Gunicorn userà
+# Expose the port that Gunicorn will use
 EXPOSE 8000
 
-# Comando per avviare Gunicorn
+# Command to start Gunicorn
 CMD ["gunicorn", "image_search.wsgi:application", "--bind", "0.0.0.0:8000"]
