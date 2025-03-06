@@ -27,11 +27,7 @@ SECRET_KEY = "django-insecure-_!^vl^%wh_f!@ndj3ndyl$4+_^wwn2xz2d*htpfemb2t33zmtj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost', 
-    '127.0.0.1',  
-    'imagesearchppm-production.up.railway.app',
-]
+ALLOWED_HOSTS = ['*']
 
 
 
