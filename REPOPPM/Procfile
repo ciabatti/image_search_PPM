@@ -2,4 +2,4 @@ web:
     python manage.py makemigrations && \
     python manage.py migrate && \
     python manage.py collectstatic --noinput && \
-    gunicorn image_search.wsgi --log-file -
+    gunicorn image_search.wsgi:application --log-file -
