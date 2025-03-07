@@ -54,6 +54,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://imagesearchppm-production.up.railway.app',
+]
+
 ROOT_URLCONF = "image_search.urls"
 
 TEMPLATES = [
