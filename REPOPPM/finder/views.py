@@ -3,48 +3,27 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 import chromadb
-import torch
-from transformers import CLIPProcessor, CLIPModel
+from chromadb.utils.embedding_functions import OpenCLIPEmbeddingFunction
+from chromadb.utils.data_loaders import ImageLoader
 import os
+import numpy as np
 
-# Load the CLIP model from Hugging Face
-model_name = "openai/clip-vit-base-patch32"
-model = CLIPModel.from_pretrained(model_name)
-processor = CLIPProcessor.from_pretrained(model_name)
-model.eval()  # Set to evaluation mode
-
-# Set up the ChromaDB database
+# chromadb setup
 db_path = "MyChromaDB"
 client = chromadb.PersistentClient(path=db_path)
-collection = client.get_or_create_collection(name='images_collection')  # No embedding_function required
+embedding_function = OpenCLIPEmbeddingFunction()
+data_loader = ImageLoader()
+collection = client.get_or_create_collection(
+    name='images_collection',
+    embedding_function=embedding_function,
+    data_loader=data_loader
+)
 
-# Function to get text embedding using CLIP
-def get_text_embedding(text):
-    try:
-        inputs = processor(text=[text], return_tensors="pt")  # Prepare the text
-        with torch.no_grad():
-            embedding = model.get_text_features(**inputs)  # Generate text embedding
-            
-        return embedding.squeeze().tolist()  
-    except Exception as e:
-        print(f"Error extracting the text embedding: {e}")
-        return None
-
-# Function to search images using text embedding
 def search_images(query):
-    query_embedding = get_text_embedding(query)  # Convert text to embedding
-    if query_embedding is None:
-        return {'ids': [[]], 'distances': [[]], 'metadatas': [[]]}  # No results
-
-    # Perform search in ChromaDB
-    results = collection.query(
-        query_embeddings=[query_embedding],  
-        n_results=6,  
-        include=["distances", "metadatas"]
-    )
+    results = collection.query(query_texts=[query], n_results=6, include=["distances", "metadatas"])
     return results
 
-# View for the search bar
+#searchbar view
 def finder(request):
     if request.method == 'POST':
         query = request.POST.get('query')
@@ -52,30 +31,28 @@ def finder(request):
             return redirect(reverse('result') + f'?query={query}')
     return render(request, 'searchbar.html')
 
-# View for search results
+# Result view
 def result(request):
     query = request.POST.get('query', '')  
     images = []
 
     if query:
         results = search_images(query)
+        distances = np.array(results['distances'][0])
 
-        # Extract distances
-        distances = results['distances'][0]
+        if len(distances) > 0:
+            min_distance = np.min(distances) # Find the closest match (minimum distance)
+            std_dev = np.std(distances)  #  Compute standard deviation of distances
+            threshold = min_distance + (std_dev * 1.5)  # Define a dynamic threshold
 
-        if distances:
-            min_distance = min(distances)  # Find the closest match
-            threshold = min_distance * 1.05  # Set the 10% threshold
-
-            # Prepare data for display
             images = [
                 {
                     'path': os.path.join(settings.MEDIA_URL, os.path.basename(md['image_path'])),
                     'distance': distance,
-                    'description': md.get('description', 'No description available')  
+                    'description': md.get('description', 'Nessuna descrizione disponibile')
                 }
                 for image_id, distance, md in zip(results['ids'][0], distances, results['metadatas'][0])
-                if 'image_path' in md and distance <= threshold  # Filter by distance threshold
+                if 'image_path' in md and distance <= threshold  # filtered by threshold
             ]
 
     return render(request, 'result/result.html', {'images': images, 'query': query})

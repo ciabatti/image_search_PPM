@@ -2,45 +2,35 @@ from django.contrib import admin
 from .models import Img
 from PIL import Image
 from datetime import datetime
-import torch
 import numpy as np
 import chromadb
-from transformers import CLIPProcessor, CLIPModel
+from chromadb.utils.embedding_functions import OpenCLIPEmbeddingFunction
+from chromadb.utils.data_loaders import ImageLoader
 import os
 
-# Load the CLIP model from Hugging Face
-model_name = "openai/clip-vit-base-patch32"
-model = CLIPModel.from_pretrained(model_name)
-processor = CLIPProcessor.from_pretrained(model_name)
-model.eval()  # Set to evaluation mode
-
-# Set up the ChromaDB vector database
+# Embedding function
 db_path = "MyChromaDB"
 client = chromadb.PersistentClient(path=db_path)
-collection = client.get_or_create_collection(name='images_collection')  # No embedding function
+embedding_function = OpenCLIPEmbeddingFunction()
+data_loader = ImageLoader()
+collection = client.get_or_create_collection(
+    name='images_collection',  
+    embedding_function=embedding_function,
+    data_loader=data_loader
+)
 
-# Function to get the current date
+#get current date/time
 def get_date():
     date = datetime.now()
-    return date.strftime("%d-%m-%Y %H:%M:%S")
+    res = date.strftime("%d-%m-%Y %H:%M:%S")
+    return res
 
-# Function to generate embedding with CLIP
-def get_clip_embedding(image_path):
-    try:
-        image = Image.open(image_path).convert("RGB")  # Load and convert the image
-        inputs = processor(images=image, return_tensors="pt")  # Prepare the image for CLIP
-        with torch.no_grad():
-            embedding = model.get_image_features(**inputs)  # Extract embedding
-        return embedding.squeeze().tolist()  # Convert tensor to Python list
-    except Exception as e:
-        print(f"Error extracting embedding: {e}")
-        return None
-
-# Admin class for Django
 class GetEmbeddingAdmin(admin.ModelAdmin):
+    # Define the custom action
     @admin.action(description="Get Embedding")
     def emb_db_load(self, request, queryset):
         for item in queryset:
+            # get image info
             a = item.name  
             name_with_embedding = f"{a} (embedded)"
             b = get_date()
@@ -48,32 +38,30 @@ class GetEmbeddingAdmin(admin.ModelAdmin):
             description = item.description  
             img_path = item.photo.path  
 
+            # check the path 
             if not os.path.exists(img_path):
-                self.message_user(request, f"Image not found for {name}.", level='error')
-                continue  
+                self.message_user(request, f"Image not founf for {name}.", level='error')
+                continue  # next image
 
-            # Generate embedding with CLIP
-            embedding = get_clip_embedding(img_path)
-            if embedding is None:
-                self.message_user(request, f"Error processing image: {name}", level='error')
-                continue
-
-            # Add the embedding to ChromaDB collection
+            # open and conver image in a numpy array 
+            try:
+                image = np.array(Image.open(img_path))
+            except Exception as e:
+                self.message_user(request, f"Error opening image: {e}", level='error')
+                continue  # next images
+            # add data to chroma
             collection.add(
                 ids=[name],                  
-                embeddings=[embedding],  # Use embedding instead of raw images
+                images=[image],         
                 metadatas=[{
                     'description': description,
                     'image_path': img_path  
                 }],
             )
-
             item.name = name_with_embedding
-            item.save()
-        
+            item.save()  # Save the updated name in the database
         self.message_user(request, "Embeddings loaded successfully.")
+    actions=[emb_db_load]
 
-    actions = [emb_db_load]
-
-# Register the model in Django Admin
+#register action
 admin.site.register(Img, GetEmbeddingAdmin)
